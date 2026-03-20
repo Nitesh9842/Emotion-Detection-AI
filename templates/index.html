@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #5a6fe0;
+            --secondary: #764ba2;
+            --bg-color: #f3f4f6;
+            --surface: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            padding: 2rem;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            color: white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: rotateBg 20s linear infinite;
+        }
+
+        @keyframes rotateBg {
+            to { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            transform: scaleX(1);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 850px) {
+            .grid-layout { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+        }
+
+        textarea {
+            width: 100%;
+            height: 180px;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            font-size: 1rem;
+            resize: vertical;
+            transition: all 0.3s ease;
+            background-color: #f9fafb;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+            background-color: white;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            font-size: 1rem;
+        }
+
+        .range-value {
+            display: inline-block;
+            font-weight: 600;
+            color: var(--primary);
+            margin-left: 0.5rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            padding: 1rem;
+            width: 100%;
+            border-radius: var(--radius-md);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Results Area */
+        #results-area {
+            display: none;
+            margin-top: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+            border: 1px solid #e8eaf6;
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .result-card h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .intensity-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            margin-top: 0.75rem;
+            overflow: hidden;
+        }
+
+        .intensity-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .recommendation-card {
+            background: white;
+            border-left: 5px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .recommendation-card h3 {
+            color: var(--text-main);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendation-text {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* Error message */
+        .error-message {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            display: none;
+            font-weight: 500;
+        }
+        
+        /* Batch Section */
+        #tab-batch {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        .file-drop-area {
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 3rem 2rem;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+        .file-drop-area:hover {
+            background: #f0f4ff;
+        }
+        .file-drop-area input[type=file] {
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Emotion Detection AI</h1>
+            <p>Analyze emotions from journal text and get personalized, actionable recommendations</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('single')">✍️ Single Analysis</button>
+            <button class="tab-btn" onclick="switchTab('batch')">📊 Batch Prediction</button>
+        </div>
+
+        <!-- TAB 1: Single Analysis -->
+        <div id="tab-single">
+            <div class="error-message" id="error-alert"></div>
+            
+            <div class="grid-layout">
+                <!-- Left: Inputs -->
+                <div class="card">
+                    <div class="input-group">
+                        <label>Journal Entry</label>
+                        <textarea id="journal-input" placeholder="e.g., I feel so overwhelmed with everything piling up. My mind keeps racing and I can't seem to calm down..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Right: Context -->
+                <div class="card">
+                    <h3 style="margin-bottom: 1.5rem; color: var(--text-main);">Context (Optional)</h3>
+                    
+                    <div class="input-group">
+                        <label>Time of day</label>
+                        <select id="time-of-day">
+                            <option value="morning">Morning</option>
+                            <option value="early_morning">Early Morning</option>
+                            <option value="afternoon">Afternoon</option>
+                            <option value="evening">Evening</option>
+                            <option value="night">Night</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Stress level <span class="range-value" id="stress-val">3</span></label>
+                        <input type="range" id="stress-level" min="1" max="5" value="3" oninput="document.getElementById('stress-val').textContent = this.value">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Energy level <span class="range-value" id="energy-val">3</span></label>
+                        <input type="range" id="energy-level" min="1" max="5" value="3" oninput="document.getElementById('energy-val').textContent = this.value">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Sleep hours <span class="range-value" id="sleep-val">7.0</span></label>
+                        <input type="range" id="sleep-hours" min="2" max="12" step="0.5" value="7" oninput="document.getElementById('sleep-val').textContent = this.value">
+                    </div>
+
+                    <button class="btn" id="analyze-btn" onclick="analyzeText()">
+                        <span>🔍 Analyze Emotion</span>
+                        <div class="loading-spinner" id="analyze-spinner"></div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results-area">
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 2.5rem 0;">
+                
+                <h2 style="margin-bottom: 1.5rem;">Analysis Results</h2>
+                
+                <div class="results-grid">
+                    <!-- Detected Emotion -->
+                    <div class="result-card">
+                        <h3>Detected Emotion</h3>
+                        <div class="badge-pill" id="res-emotion">
+                            <span id="em-icon">❓</span> <span id="em-text">Loading</span>
+                        </div>
+                    </div>
+
+                    <!-- Intensity -->
+                    <div class="result-card">
+                        <h3>Intensity <span style="float:right; font-weight:600; color:var(--text-main);" id="int-label">High</span></h3>
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--text-main);">
+                            <span id="int-val">0.0</span> <span style="font-size: 1rem; color: var(--text-muted); font-weight: 500;">/ 5.0</span>
+                        </div>
+                        <div class="intensity-bar">
+                            <div class="intensity-fill" id="int-bar" style="width: 0%; background: #4caf50;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Timing -->
+                    <div class="result-card">
+                        <h3>Recommended Timing</h3>
+                        <div class="badge-pill" id="res-timing" style="padding: 0.4rem 1rem; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                            ⏰ <span id="time-label">Soon</span>
+                        </div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.4;" id="time-detail"></p>
+                    </div>
+                </div>
+
+                <!-- Recommendation Action -->
+                <div class="recommendation-card" id="res-rec-border">
+                    <h3>💡 Recommended Action</h3>
+                    <div class="recommendation-text" id="res-rec">
+                        A personalized recommendation will appear here.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Batch Prediction -->
+        <div id="tab-batch">
+            <div class="card">
+                <h2 style="margin-bottom: 0.5rem;">Upload Dataset for Prediction</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Upload a CSV or Excel file containing a <code>journal_text</code> column.</p>
+                
+                <div class="file-drop-area" onclick="document.getElementById('batch-file').click()">
+                    <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">📁</span>
+                    <h3 id="file-name-display">Click to select or drag and drop a file</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">CSV or XLSX format only</p>
+                    <input type="file" id="batch-file" accept=".csv, .xlsx, .xls" onchange="updateFileName(this)">
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                    <input type="checkbox" id="use-test-set" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label for="use-test-set" style="font-weight: 500; cursor: pointer;">Or use built-in test set (120 samples)</label>
+                </div>
+
+                <div class="error-message" id="batch-error-alert"></div>
+
+                <button class="btn" id="batch-btn" onclick="runBatch()">
+                    <span>🚀 Run Batch Prediction & Download</span>
+                    <div class="loading-spinner" id="batch-spinner"></div>
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Frontend Logic -->
+    <script>
+        const EMOTION_COLORS = {
+            "Calm": { bg: "#4caf50", icon: "🌿" },
+            "Focused": { bg: "#2196f3", icon: "🎯" },
+            "Neutral": { bg: "#9e9e9e", icon: "😐" },
+            "Restless": { bg: "#ff9800", icon: "🌀" },
+            "Mixed": { bg: "#9c27b0", icon: "🎭" },
+            "Overwhelmed": { bg: "#f44336", icon: "😰" }
+        };
+
+        const INTENSITY_COLORS = {
+            "Low": "#4caf50",
+            "Medium": "#ff9800",
+            "High": "#f44336"
+        };
+
+        const TIMING_COLORS = {
+            "Immediate": "#f44336",
+            "Soon": "#ff9800",
+            "Later Today": "#2196f3",
+            "Whenever Ready": "#4caf50"
+        };
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            document.getElementById('tab-single').style.display = tab === 'single' ? 'block' : 'none';
+            document.getElementById('tab-batch').style.display = tab === 'batch' ? 'block' : 'none';
+        }
+
+        function updateFileName(input) {
+            const nameDisplay = document.getElementById('file-name-display');
+            if (input.files && input.files[0]) {
+                nameDisplay.textContent = input.files[0].name;
+                nameDisplay.style.color = 'var(--primary)';
+            } else {
+                nameDisplay.textContent = 'Click to select or drag and drop a file';
+                nameDisplay.style.color = '';
+            }
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('journal-input').value;
+            const errorAlert = document.getElementById('error-alert');
+            
+            if (!text.trim()) {
+                errorAlert.textContent = "Please enter some text to analyze.";
+                errorAlert.style.display = "block";
+                return;
+            }
+            errorAlert.style.display = "none";
+
+            const btn = document.getElementById('analyze-btn');
+            const spinner = document.getElementById('analyze-spinner');
+            
+            btn.disabled = true;
+            spinner.style.display = "block";
+            
+            const payload = {
+                text: text,
+                time_of_day: document.getElementById('time-of-day').value,
+                stress_level: document.getElementById('stress-level').value,
+                energy_level: document.getElementById('energy-level').value,
+                sleep_hours: document.getElementById('sleep-hours').value
+            };
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Failed to analyze text");
+                }
+
+                displayResults(data);
+            } catch (error) {
+                errorAlert.textContent = error.message;
+                errorAlert.style.display = "block";
+                document.getElementById('results-area').style.display = "none";
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = "none";
+            }
+        }
+
+        function displayResults(data) {
+            document.getElementById('results-area').style.display = "block";
+            
+            // Emotion Target
+            const emoMeta = EMOTION_COLORS[data.emotion] || { bg: "#607d8b", icon: "❓" };
+            const emoBadge = document.getElementById('res-emotion');
+            emoBadge.style.backgroundColor = emoMeta.bg;
+            document.getElementById('em-icon').textContent = emoMeta.icon;
+            document.getElementById('em-text').textContent = data.emotion;
+            
+            // Intensity Target
+            document.getElementById('int-val').textContent = parseFloat(data.intensity).toFixed(2);
+            document.getElementById('int-label').textContent = data.intensity_label;
+            const bar = document.getElementById('int-bar');
+            
+            // Reset width to 0 for animation
+            bar.style.width = '0%';
+            setTimeout(() => {
+                const pct = ((data.intensity - 1) / 4) * 100;
+                bar.style.width = `${Math.max(5, pct)}%`;
+                bar.style.backgroundColor = INTENSITY_COLORS[data.intensity_label] || "#9e9e9e";
+            }, 50);
+
+            // Timing Target
+            const timingBadge = document.getElementById('res-timing');
+            timingBadge.style.backgroundColor = TIMING_COLORS[data.timing_label] || "#607d8b";
+            document.getElementById('time-label').textContent = data.timing_label;
+            document.getElementById('time-detail').textContent = data.timing_detail;
+
+            // Recommendation
+            document.getElementById('res-rec').textContent = data.recommendation;
+            document.getElementById('res-rec-border').style.borderLeftColor = emoMeta.bg;
+            
+            // Scroll to results seamlessly
+            document.getElementById('results-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        async function runBatch() {
+            const fileInput = document.getElementById('batch-file');
+            const useTestSet = document.getElementById('use-test-set').checked;
+            const errorAlert = document.getElementById('batch-error-alert');
+            
+            if (!useTestSet && (!fileInput.files || fileInput.files.length === 0)) {
+                errorAlert.textContent = "Please upload a file or select the build-in test set.";
+                errorAlert.style.display = "block";
+                return;
+            }
+            errorAlert.style.display = "none";
+
+            const btn = document.getElementById('batch-btn');
+            const spinner = document.getElementById('batch-spinner');
+            
+            btn.disabled = true;
+            spinner.style.display = "block";
+
+            const formData = new FormData();
+            if (!useTestSet) {
+                formData.append("file", fileInput.files[0]);
+            }
+            formData.append("use_test_set", useTestSet);
+
+            try {
+                const response = await fetch('/api/batch', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || "Batch prediction failed");
+                }
+
+                // Handle file download
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                
+                // Get filename from response header if possible
+                const contentDisp = response.headers.get('Content-Disposition');
+                let filename = 'emotion_predictions.csv';
+                if (contentDisp && contentDisp.indexOf('attachment') !== -1) {
+                    const matches = /filename="([^"]*)"/.exec(contentDisp);
+                    if (matches != null && matches[1]) filename = matches[1];
+                }
+                
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+            } catch (error) {
+                errorAlert.textContent = error.message;
+                errorAlert.style.display = "block";
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

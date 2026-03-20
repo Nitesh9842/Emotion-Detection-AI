@@ -136,7 +136,7 @@ def main():
     for _, row in test_results.head(5).iterrows():
         print(f"    [{row['emotion']}] Intensity={row['intensity']} | {row['recommendation'][:60]}...")
     print("=" * 70)
-    print("  Pipeline complete! Run the Streamlit app:  streamlit run app.py")
+    print("  Pipeline complete! Run the Flask app: python app.py")
     print("=" * 70)
 
 
